@@ -24,19 +24,29 @@ def main():
 
         if event == "Ok":
             matrix = image_to_characters(values[0], values[1])
-            total_string: str = ""
-            for row in matrix:
-                string: str = ""
-                for item in row:
-                    string += "" + item + ""
-
-                total_string += string + "\n"
-                window["Characterify"].update(total_string)
-                window.refresh()
-            
-            #window["Characterify"].update(total_string)
+            if values[1][-4:] != ".gif":
+                print_static_image(matrix, window, True)
+            else:
+                for frame in matrix:
+                    print_static_image(frame, window, False)
+                    window.refresh()
+                    
+            window.refresh()
 
     window.close()
+
+def print_static_image(matrix: list[list], window, refresh: bool) -> None:
+    total_string: str = ""
+    for row in matrix:
+        string: str = ""
+        for item in row:
+            string += "" + item + ""
+
+        total_string += string + "\n"
+        window["Characterify"].update(total_string)
+
+        if refresh: 
+            window.refresh()
 
 if __name__ == "__main__":
     main()
