@@ -2,23 +2,38 @@ from PIL import Image
 import math
 
 CHARACTERS: str = "@%#*+=-:. "
-MAX_WIDTH: int = 20
+MAX_WIDTH: int = 1
 CHAR_STEP: float = 255 / len(CHARACTERS)
 
-def main() -> None:
-    image = Image.open("test_images/image2.jpg")
+def image_to_characters(characters: str, image_path: str) -> list[list[str]]:
+    characters_step: float = 255 / len(characters)
+    image = Image.open(image_path)
     width, height = image.size
+    width, height = resize(width, height, 100)
     
+    image = image.resize((width,height))
     pixels = list(image.getdata())
-    matrix_size: tuple[int, int] = get_character_matrix_size(width, height)
+    
+    matrix: list[list] = get_pixel_matrix(pixels, width)
+    matrix = characterify(matrix, characters, characters_step)
+
+    return matrix
+
+def main() -> None:
+    image = Image.open("test_images/image5.jpg")
+
+    width, height = image.size
+    width, height = resize(width, height, 100)
+    image = image.resize((width, height))
+
+    pixels = list(image.getdata())
     matrix = get_pixel_matrix(pixels, width)
-    matrix = get_cells(matrix,matrix_size)
     matrix = characterify(matrix)
 
     for row in matrix:
         string = ""
         for value in row:
-            string += " " + value + " "
+            string += value
         
         print(string)
 
@@ -39,61 +54,34 @@ def get_pixel_matrix(pixels, width: int) -> list[list[tuple[int, int, int]]]:
         
     return matrix
 
-def characterify(matrix):
-    temp_matrix = []
+def characterify(matrix, characters_list: str = CHARACTERS, character_step:float = CHAR_STEP) -> list[list[str]]:
+    temp_matrix: list[list[str]] = []
     for row in matrix:
-        temp_row = []
+        temp_row: list[str] = []
         for cell in row:
-            temp_row.append(get_value(cell))
+            temp_row.append(get_value(cell, characters_list, character_step))
 
         temp_matrix.append(temp_row)
     
     return temp_matrix
 
 
-def get_value(rgb_array: list[tuple[int, int, int]]):
-    length = len(rgb_array)
+def resize(width: int, height: int, target_character_size: int = 100) -> tuple[int, int]:
+    divide_by: float = max(width/target_character_size, height/target_character_size)
 
-    red = 0
-    green = 0
-    blue = 0
+    #height should be divided by 2, because of printing
+    w: int = round(width/divide_by)
+    h: int = round((height/divide_by) / 2)
+    return w, h
 
-    for item in rgb_array:
-        red += item[0]
-        green += item[1]
-        blue += item[2]
-
-    red /= length
-    green /= length
-    blue /= length
+def get_value(rgb: tuple[int, int, int], character_list, characters_step: float ):
+    red, green, blue = rgb
 
     avg: float = (red + green + blue) / 3
 
-    index: int = round(avg/CHAR_STEP) - 1
+    index: int = round(avg/characters_step) - 1
 
-    return CHARACTERS[index]
-
-def get_cells(matrix, matrix_size: tuple[int, int]) -> list[list]:
-    full_matrix: list[list] = []
-    for row in range(matrix_size[1]):
-        row_list: list[list] = []
-        for col in range(matrix_size[0]):
-            cell: list[tuple[int, int, int]] = _get_cell(matrix, row, col)
-            row_list.append(cell)
-        
-        full_matrix.append(row_list)
-    
-    return full_matrix
-    
-def _get_cell(matrix: list, row: int, col: int, max_width: int = MAX_WIDTH) -> list[tuple[int, int, int]]:
-    cell:list[tuple[int, int, int]] = []
-    for r in range(max_width):
-        for c in range(max_width):
-            row_add: int = (max_width * row) - 1
-            col_add: int = (max_width * col) - 1
-            cell.append(matrix[r + row_add][c + col_add])
-    
-    return cell
+    return character_list[index]
 
 if __name__ == "__main__":
     main()

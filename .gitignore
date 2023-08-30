@@ -1,5 +1,2 @@
-test_images/image2.jpg
-test_images/image3.jpg
-test_images/image4.jpg
-test_images/image5.jpg
-test_images/test_image.jpeg
+test_images
+__pycache__
