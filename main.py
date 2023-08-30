@@ -1,23 +1,48 @@
-from PIL import Image
+from PIL import Image, GifImagePlugin
 import math
+
+GifImagePlugin.LOADING_STRATEGY = GifImagePlugin.LoadingStrategy.RGB_ALWAYS
 
 CHARACTERS: str = "@%#*+=-:. "
 MAX_WIDTH: int = 1
 CHAR_STEP: float = 255 / len(CHARACTERS)
 
-def image_to_characters(characters: str, image_path: str) -> list[list[str]]:
+def image_to_characters(characters: str, image_path: str) -> list[list]:
     characters_step: float = 255 / len(characters)
+
     image = Image.open(image_path)
     width, height = image.size
     width, height = resize(width, height, 100)
-    
-    image = image.resize((width,height))
-    pixels = list(image.getdata())
-    
-    matrix: list[list] = get_pixel_matrix(pixels, width)
-    matrix = characterify(matrix, characters, characters_step)
 
-    return matrix
+    if image_path[-4:] != ".gif":
+        image = image.resize((width,height))
+        image.convert("RGB")
+
+        pixels = list(image.getdata(None))
+    
+        matrix: list[list] = get_pixel_matrix(pixels, width)
+        matrix = characterify(matrix, characters, characters_step)
+
+        return matrix
+
+
+    if image_path[-4:] == ".gif":
+
+        frame_data = []
+
+        for frame in range(image.n_frames):
+            image.seek(frame)
+    
+            pixels = list(image.getdata(None))
+            
+            matrix: list[list] = get_pixel_matrix(pixels, width)
+            matrix = characterify(matrix, characters, characters_step)
+
+            frame_data.append(matrix)
+
+    return frame_data
+
+
 
 def main() -> None:
     image = Image.open("test_images/image5.jpg")
