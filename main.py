@@ -27,13 +27,11 @@ def image_to_characters(characters: str, image_path: str) -> list[list]:
 
 
     if image_path[-4:] == ".gif":
-
+        frames = resize_gif(image_path, width, height)
         frame_data = []
 
-        for frame in range(image.n_frames):
-            image.seek(frame)
-    
-            pixels = list(image.getdata(None))
+        for frame in frames:
+            pixels = list(frame.getdata(None))
             
             matrix: list[list] = get_pixel_matrix(pixels, width)
             matrix = characterify(matrix, characters, characters_step)
@@ -42,6 +40,21 @@ def image_to_characters(characters: str, image_path: str) -> list[list]:
 
     return frame_data
 
+
+def resize_gif(image_path: str, width: int, height: int):
+    if image_path[-4:] != ".gif":
+        return
+    
+    image = Image.open(image_path)
+    
+    image_array = []
+    for frame in range(image.n_frames):
+        image.seek(frame)
+        temp_image = image.copy()
+        temp_image = temp_image.resize((width, height))
+        image_array.append(temp_image)
+
+    return image_array    
 
 
 def main() -> None:
