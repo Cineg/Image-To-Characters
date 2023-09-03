@@ -1,4 +1,6 @@
+from time import sleep
 from PIL import Image, GifImagePlugin
+import subprocess
 import math
 
 GifImagePlugin.LOADING_STRATEGY = GifImagePlugin.LoadingStrategy.RGB_ALWAYS
@@ -9,8 +11,12 @@ CHAR_STEP: float = 255 / len(CHARACTERS)
 
 def image_to_characters(characters: str, image_path: str) -> list[list]:
     characters_step: float = 255 / len(characters)
+    try:
+        image = Image.open(image_path)
+    except:
+        print("Can't open image.")
+        return []
 
-    image = Image.open(image_path)
     width, height = image.size
     width, height = resize(width, height, 100)
 
@@ -58,22 +64,32 @@ def resize_gif(image_path: str, width: int, height: int):
 
 
 def main() -> None:
-    image = Image.open("test_images/image5.jpg")
+    image_path: str = input("Please input image path: ")
+    characters_gradient: str = input("Please input image gradient. Default = @%#*+=-:. ")
 
-    width, height = image.size
-    width, height = resize(width, height, 100)
-    image = image.resize((width, height))
+    if len(characters_gradient) < 2:
+        print("Using default characters scheme")
+        characters_gradient = CHARACTERS
+    
+    image = image_to_characters(characters_gradient, image_path)
+    
+    if image_path[-4:] == ".gif":
+        for frame in image:
+            sleep(0.05)
+            subprocess.run("cls", shell=True)
+            print_image(frame)
+    
+    else:
+        print_image(image)
 
-    pixels = list(image.getdata())
-    matrix = get_pixel_matrix(pixels, width)
-    matrix = characterify(matrix)
-
+def print_image(matrix):
     for row in matrix:
         string = ""
         for value in row:
             string += value
-        
+
         print(string)
+
 
 def get_character_matrix_size(width_px: int, height_px: int, max_width: int = MAX_WIDTH) -> tuple[int, int]:
     columns: int = math.floor(width_px / max_width)
@@ -102,7 +118,6 @@ def characterify(matrix, characters_list: str = CHARACTERS, character_step:float
         temp_matrix.append(temp_row)
     
     return temp_matrix
-
 
 def resize(width: int, height: int, target_character_size: int = 100) -> tuple[int, int]:
     divide_by: float = max(width/target_character_size, height/target_character_size)

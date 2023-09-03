@@ -32,7 +32,7 @@ def main():
                 print_gif(matrix, window, window["FrameTime"].get())
                 if window["isGifLooped"].get():
                     while window["isGifLooped"].get():
-                        sleep(0.5)
+                        sleep(window["FrameTime"].get())
                         print_gif(matrix, window, window["FrameTime"].get())
 
             window.refresh()
